@@ -11,6 +11,10 @@
   height: 100%;
 }
 
+p {
+  margin: 0;
+}
+
 html {
   height: 100%;
 }
@@ -35,4 +39,8 @@ body {
 .weather-header {
   border-bottom: solid black 2px;
   font-weight: bold;
+}
+
+.weather-body {
+  text-align: left;
 }
