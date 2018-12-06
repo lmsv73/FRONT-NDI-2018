@@ -6,12 +6,14 @@ import router from './router.js'
 
 /***** COMPONENTS ******/
 import Navbar from './components/Navbar'
+import VueMarkdown from 'vue-markdown'
 
 Vue.config.productionTip = false
 
 Vue.use(BootstrapVue)
 
 Vue.component('navbar', Navbar)
+Vue.component('vue-markdown', VueMarkdown)
 
 new Vue({
   render: h => h(App),
