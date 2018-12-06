@@ -4,9 +4,14 @@ import BootstrapVue from 'bootstrap-vue'
 
 import router from './router.js'
 
+/***** COMPONENTS ******/
+import Navbar from './components/Navbar'
+
 Vue.config.productionTip = false
 
 Vue.use(BootstrapVue)
+
+Vue.component('navbar', Navbar)
 
 new Vue({
   render: h => h(App),
