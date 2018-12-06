@@ -1,14 +1,38 @@
 @import '~bootstrap/dist/css/bootstrap.css';
 @import '~bootstrap-vue/dist/bootstrap-vue.css';
+@import '~vue-weather-widget/dist/css/vue-weather-widget.css';
 
 #app {
-    font-family: 'Avenir', Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-align: center;
-    color: #2c3e50;
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  height: 100%;
+}
+
+html {
+  height: 100%;
 }
 
 body {
   margin: 0;
+  height: 100%;
+}
+
+.navbar {
+  background-color: #dca019 !important;
+}
+
+.home-left-side {
+  background-color: #d9dee2;
+}
+
+.home-container {
+  height: calc(100% - 56px);
+}
+
+.weather-header {
+  border-bottom: solid black 2px;
+  font-weight: bold;
 }
