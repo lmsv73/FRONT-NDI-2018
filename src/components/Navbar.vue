@@ -9,6 +9,7 @@
                     <b-nav-item to="/">Dashboard</b-nav-item>
                     <b-nav-item to="/stock">Stock</b-nav-item>
                     <b-nav-item to="/missions">Missions</b-nav-item>
+                    <b-nav-item to="/journal">Journal</b-nav-item>
                 </b-navbar-nav>
             </b-collapse>
         </b-navbar>

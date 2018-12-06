@@ -8,6 +8,7 @@ import router from './router.js'
 
 /***** COMPONENTS ******/
 import Navbar from './components/Navbar'
+import VueMarkdown from 'vue-markdown'
 
 Vue.config.productionTip = false
 
@@ -16,6 +17,7 @@ Vue.use(VueResource)
 Vue.use(VueGeolocation)
 
 Vue.component('navbar', Navbar)
+Vue.component('vue-markdown', VueMarkdown)
 
 Vue.prototype.prod = "http://51.75.94.42";
 
