@@ -13,19 +13,25 @@
               </div>
               <div class="text-center">
                 <img class="d-block pb-2 m-auto" src="images/humidite.png">
-                <span v-if="humidity_data.length">{{ humidity_data[humidity_data.length - 1][1] }} g/m³</span>
+                <span v-if="humidity_data.length">{{ humidity_data[humidity_data.length - 1][1] }} %</span>
               </div>
               <div class="text-center">
                 <img class="d-block pb-2 m-auto" src="images/pression.png">
                 <span v-if="pressure_data.length">{{ pressure_data[pressure_data.length - 1][1] }} hPa</span>
               </div>
+            </div>
+            <div class="mt-3 mb-3 weather-body d-flex justify-content-around">
               <div class="text-center">
                 <img class="d-block pb-2 m-auto" src="images/soleil.png">
                 <span v-if="luminosity_data.length">{{ luminosity_data[luminosity_data.length - 1][1] }} lux</span>
               </div>
               <div class="text-center">
                 <img class="d-block pb-2 m-auto" src="images/vent.png">
-                <span v-if="wind_data.length">{{ wind_data[wind_data.length - 1][1] }} m/h</span>
+                <span v-if="wind_data.length">{{ wind_data[wind_data.length - 1][1] }} m/s</span>
+              </div>
+              <div class="text-center">
+                <img class="d-block pb-2 m-auto" src="images/montagne.png">
+                <span v-if="altitude_data.length">{{ altitude_data[altitude_data.length - 1][1] }} m</span>
               </div>
             </div>
           </div>
@@ -71,6 +77,26 @@
               :options="{hAxis: {textPosition: 'none'}, vAxis: {gridLines: {color: 'transparent'}}}"
             />
           </div>
+          <div>
+            <h2>Variations de l'altitude</h2>
+            <GChart
+              type="LineChart"
+              :data="altitude_data"
+              :options="{hAxis: {textPosition: 'none'}, vAxis: {gridLines: {color: 'transparent'}}}"
+            />
+          </div>
+
+          <b-button v-if="!active_heartbeat" @click="startHeartbeat">Start Heartbeat</b-button>
+          <b-button v-else @click="stopHeartbeat">Stop Heartbeat</b-button>
+
+          <div v-if="heartbeats_data.length > 1">
+            <h2>Variations cardiaques</h2>
+            <GChart
+              type="LineChart"
+              :data="heartbeats_data"
+              :options="{hAxis: {textPosition: 'none'}, vAxis: {gridLines: {color: 'transparent'}}}"
+            />
+          </div>
         </b-col>
         <b-col md="3"></b-col>
       </b-row>
@@ -89,6 +115,7 @@ export default {
       humidity: [],
       wind: [],
       luminosity: [],
+      altitude: [],
       temp_header: ['Date', 'Température'],
       temp_data: [],
       pressure_header: ['Date', 'Pression'],
@@ -98,7 +125,13 @@ export default {
       wind_header: ['Date', 'Vent'],
       wind_data: [],
       luminosity_header: ['Date', 'Luminosité'],
-      luminosity_data: []
+      luminosity_data: [],
+      altitude_header: ['Date', 'Altitude'],
+      altitude_data: [],
+      active_heartbeat: false,
+      heartbeats_header: ['Date', 'Heartbeat'],
+      heartbeats_data: [],
+      interval: null
     }
   },
   methods: {
@@ -148,6 +181,16 @@ export default {
         let res = await this.$http.get(this.prod + '/meteo/luminosity/');
         this.setOneData('luminosity', res.body[0]);
       }
+
+
+      if(nb != undefined) {
+        let res = await this.$http.get(this.prod + '/meteo/altitude/' + nb);
+        res.body.reverse();
+        this.setAllData('altitude', res.body);
+      } else {
+        let res = await this.$http.get(this.prod + '/meteo/altitude/');
+        this.setOneData('altitude', res.body[0]);
+      }
     },
     setAllData(type, data){
       this[type].push(data[0][type]);
@@ -161,13 +204,39 @@ export default {
     },
     setOneData(type, data){
       let lastdata = this[type + "_data"][this[type + "_data"].length - 1];
-      if(data.date !== lastdata.date){
+      if(data.date !== lastdata[0]){
         if(type === "temp"){
           this[type + "_data"].push([data.date, parseFloat((data[type]- 273.15).toFixed(1))]);
         }else{
           this[type + "_data"].push([data.date, data[type]]);
         }
+        this[type + "_data"].splice(2, 1);
       }
+    },
+    startHeartbeat() {
+      this.heartbeats_data = [];
+      this.heartbeats_data.push(this.heartbeats_header);
+
+      this.$http.get(this.prod + '/cardiac/activate').then(res => {
+        if(res.body.ok != null) {
+          this.active_heartbeat = true;
+          this.interval = setInterval(() => {
+            this.$http.get(this.prod + '/cardiac').then(res => {
+              this.heartbeats_data.push([Date.now(), res.body]);
+            })
+          }, 1000);
+        } else {
+          this.$http.get(this.prod + '/cardiac/stop').then(() => {
+            this.startHeartbeat();
+          })
+        }
+      })
+    },
+    stopHeartbeat() {
+      this.$http.get(this.prod + '/cardiac/stop').then(() => {
+        this.active_heartbeat = false;
+        clearInterval(this.interval);
+      })
     }
   },
   mounted() {
@@ -176,9 +245,10 @@ export default {
     this.pressure_data.push(this.pressure_header);
     this.wind_data.push(this.wind_header);
     this.luminosity_data.push(this.luminosity_header);
+    this.altitude_data.push(this.altitude_header);
+    this.heartbeats_data.push(this.heartbeats_header);
 
     this.getWeather(10);
-    
 
     setInterval(this.getWeather, 1000)
   }
@@ -188,5 +258,8 @@ export default {
 <style scoped>
 h2 {
   font-size: 20px;
+}
+.weather-body div {
+  flex: 3;
 }
 </style>
