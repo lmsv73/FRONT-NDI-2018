@@ -9,23 +9,23 @@
             <div class="mt-3 mb-3 weather-body d-flex justify-content-around">
               <div class="text-center">
                 <img class="d-block pb-2 m-auto" src="images/temperature.png">
-                <span v-if="temperature.length">{{ temperature[temperature.length - 1] }}°C</span>
+                <span v-if="temp_data.length">{{ temp_data[temp_data.length - 1][1] }}°C</span>
               </div>
               <div class="text-center">
                 <img class="d-block pb-2 m-auto" src="images/humidite.png">
-                <span v-if="humidity.length">{{ humidity[humidity.length - 1] }} g/m³</span>
+                <span v-if="humidity_data.length">{{ humidity_data[humidity_data.length - 1][1] }} g/m³</span>
               </div>
               <div class="text-center">
                 <img class="d-block pb-2 m-auto" src="images/pression.png">
-                <span v-if="pressure.length">{{ pressure[pressure.length - 1] }} hPa</span>
+                <span v-if="pressure_data.length">{{ pressure_data[pressure_data.length - 1][1] }} hPa</span>
               </div>
               <div class="text-center">
                 <img class="d-block pb-2 m-auto" src="images/soleil.png">
-                <span v-if="luminosity.length">{{ luminosity[luminosity.length - 1] }} lux</span>
+                <span v-if="luminosity_data.length">{{ luminosity_data[luminosity_data.length - 1][1] }} lux</span>
               </div>
               <div class="text-center">
                 <img class="d-block pb-2 m-auto" src="images/vent.png">
-                <span v-if="wind.length">{{ wind[wind.length - 1] }} m/h</span>
+                <span v-if="wind_data.length">{{ wind_data[wind_data.length - 1][1] }} m/h</span>
               </div>
             </div>
           </div>
@@ -35,7 +35,7 @@
             <h2>Variations des températures</h2>
             <GChart
               type="LineChart"
-              :data="temperature_data"
+              :data="temp_data"
               :options="{hAxis: {textPosition: 'none'}, vAxis: {gridLines: {color: 'transparent'}}}"
             />
           </div>
@@ -84,13 +84,13 @@ export default {
   name: 'Home',
   data() {
     return {
-      temperature: [],
+      temp: [],
       pressure: [],
       humidity: [],
       wind: [],
       luminosity: [],
-      temperature_header: ['Date', 'Température'],
-      temperature_data: [],
+      temp_header: ['Date', 'Température'],
+      temp_data: [],
       pressure_header: ['Date', 'Pression'],
       pressure_data: [],
       humidity_header: ['Date', 'Humidité'],
@@ -98,95 +98,87 @@ export default {
       wind_header: ['Date', 'Vent'],
       wind_data: [],
       luminosity_header: ['Date', 'Luminosité'],
-      luminosity_data: [],
-      timestamps_temp: [],
-      timestamps_wind: [],
-      timestamps_pressure: [],
-      timestamps_luminosity: [],
-      timestamps_humidity: []
+      luminosity_data: []
     }
   },
   methods: {
-    getWeather() {
-      this.$http.get(this.prod + '/meteo/temp').then(res => {
-        if(this.timestamps_temp.length == 0) {
-          this.temperature.push((res.body[0].temp - 273.15).toFixed(1));
-          this.temperature_data.push([res.body[0].date , parseFloat((res.body[0].temp - 273.15).toFixed(1))]);
-        }
-        
-        this.timestamps_temp.push(res.body[0].date);
+    async getWeather(nb) {
 
-        if(this.timestamps_temp[this.timestamps_temp.length - 1] != this.timestamps_temp[this.timestamps_temp.length - 2]) {
-          this.temperature.push((res.body[0].temp - 273.15).toFixed(1));
-          this.temperature_data.push([res.body[0].date, parseFloat((res.body[0].temp - 273.15).toFixed(1))]);
+      if(nb != undefined) {
+        let res = await this.$http.get(this.prod + '/meteo/temp/' + nb);
+        res.body.reverse();
+        this.setAllData('temp', res.body);
+      } else {
+        let res = await this.$http.get(this.prod + '/meteo/temp/');
+        this.setOneData('temp', res.body[0]);
+      }
+
+      if(nb != undefined) {
+        let res = await this.$http.get(this.prod + '/meteo/wind/' + nb);
+        res.body.reverse();
+        this.setAllData('wind', res.body);
+      } else {
+        let res = await this.$http.get(this.prod + '/meteo/wind/');
+        this.setOneData('wind', res.body[0]);
+      }
+
+      if(nb != undefined) {
+        let res = await this.$http.get(this.prod + '/meteo/pressure/' + nb);
+        res.body.reverse();
+        this.setAllData('pressure', res.body);
+      } else {
+        let res = await this.$http.get(this.prod + '/meteo/pressure/');
+        this.setOneData('pressure', res.body[0]);
+      }
+      
+      if(nb != undefined) {
+        let res = await this.$http.get(this.prod + '/meteo/humidity/' + nb);
+        res.body.reverse();
+        this.setAllData('humidity', res.body);
+      } else {
+        let res = await this.$http.get(this.prod + '/meteo/humidity/')
+        this.setOneData('humidity', res.body[0]);
+      }
+
+      if(nb != undefined) {
+        let res = await this.$http.get(this.prod + '/meteo/luminosity/' + nb);
+        res.body.reverse();
+        this.setAllData('luminosity', res.body);
+      } else {
+        let res = await this.$http.get(this.prod + '/meteo/luminosity/');
+        this.setOneData('luminosity', res.body[0]);
+      }
+    },
+    setAllData(type, data){
+      this[type].push(data[0][type]);
+      data.forEach((d) => {
+        if(type === "temp"){
+          this[type + "_data"].push([d.date, parseFloat((d[type]- 273.15).toFixed(1))]);
+        }else{
+         this[type + "_data"].push([d.date, d[type]]); 
         }
       })
-
-      this.$http.get(this.prod + '/meteo/wind').then(res => {
-        if(this.timestamps_wind.length == 0) {
-          this.wind.push(res.body[0].wind);
-          this.wind_data.push([res.body[0].date, res.body[0].wind]);
+    },
+    setOneData(type, data){
+      let lastdata = this[type + "_data"][this[type + "_data"].length - 1];
+      if(data.date !== lastdata.date){
+        if(type === "temp"){
+          this[type + "_data"].push([data.date, parseFloat((data[type]- 273.15).toFixed(1))]);
+        }else{
+          this[type + "_data"].push([data.date, data[type]]);
         }
-        
-        this.timestamps_wind.push(res.body[0].date);
-
-        if(this.timestamps_wind[this.timestamps_wind.length - 1] != this.timestamps_wind[this.timestamps_wind.length - 2]) {
-          this.wind.push(res.body[0].wind);
-          this.wind_data.push([res.body[0].date, res.body[0].wind]);
-        }
-      })
-
-      this.$http.get(this.prod + '/meteo/pressure').then(res => {
-        if(this.timestamps_pressure.length == 0) {
-          this.pressure.push(res.body[0].pressure);
-          this.pressure_data.push([res.body[0].date, res.body[0].pressure]);
-        }
-        
-        this.timestamps_pressure.push(res.body[0].date);
-
-        if(this.timestamps_pressure[this.timestamps_pressure.length - 1] != this.timestamps_pressure[this.timestamps_pressure.length - 2]) {
-          this.pressure.push(res.body[0].pressure);
-          this.pressure_data.push([res.body[0].date, res.body[0].pressure]);
-        }
-      })
-
-      this.$http.get(this.prod + '/meteo/humidity').then(res => {
-        if(this.timestamps_humidity.length == 0) {
-          this.humidity.push(res.body[0].humidity);
-          this.humidity_data.push([res.body[0].date, res.body[0].humidity]);
-        }
-        
-        this.timestamps_humidity.push(res.body[0].date);
-
-        if(this.timestamps_humidity[this.timestamps_humidity.length - 1] != this.timestamps_humidity[this.timestamps_humidity.length - 2]) {
-          this.humidity.push(res.body[0].humidity);
-          this.humidity_data.push([res.body[0].date, res.body[0].humidity]);
-        }
-      })
-
-      this.$http.get(this.prod + '/meteo/luminosity').then(res => {
-        if(this.timestamps_luminosity.length == 0) {
-          this.luminosity.push(res.body[0].luminosity);
-          this.luminosity_data.push([res.body[0].date, res.body[0].luminosity]);
-        }
-        
-        this.timestamps_luminosity.push(res.body[0].date);
-
-        if(this.timestamps_luminosity[this.timestamps_luminosity.length - 1] != this.timestamps_luminosity[this.timestamps_luminosity.length - 2]) {
-          this.luminosity.push(res.body[0].luminosity);
-          this.luminosity_data.push([res.body[0].date, res.body[0].luminosity]);
-        }
-      })
+      }
     }
   },
   mounted() {
-    this.temperature_data.push(this.temperature_header);
+    this.temp_data.push(this.temp_header);
     this.humidity_data.push(this.humidity_header);
     this.pressure_data.push(this.pressure_header);
     this.wind_data.push(this.wind_header);
     this.luminosity_data.push(this.luminosity_header);
 
-    this.getWeather();
+    this.getWeather(10);
+    
 
     setInterval(this.getWeather, 1000)
   }
