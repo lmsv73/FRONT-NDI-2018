@@ -3,6 +3,7 @@ import App from './App.vue'
 import BootstrapVue from 'bootstrap-vue'
 import VueResource from 'vue-resource'
 import VueGeolocation from 'vue-browser-geolocation'
+import VueGoogleCharts from 'vue-google-charts'
 
 import router from './router.js'
 
@@ -15,6 +16,7 @@ Vue.config.productionTip = false
 Vue.use(BootstrapVue)
 Vue.use(VueResource)
 Vue.use(VueGeolocation)
+Vue.use(VueGoogleCharts)
 
 Vue.component('navbar', Navbar)
 Vue.component('vue-markdown', VueMarkdown)
