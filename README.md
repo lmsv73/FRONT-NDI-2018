@@ -1,4 +1,4 @@
-# t
+# Application d'assistance numérique pour un explorateur en Namibie
 
 ## Project setup
 ```
