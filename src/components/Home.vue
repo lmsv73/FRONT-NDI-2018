@@ -40,6 +40,20 @@
                 <span v-if="altitude_data.length">{{ altitude_data[altitude_data.length - 1][1] }} m</span>
               </div>
             </div>
+            <div>
+              <b-alert variant="danger" :show="temp_data.length && temp_data[temp_data.length - 1][1] <= 0">Température trop basse</b-alert>
+              <b-alert variant="danger" :show="temp_data.length && temp_data[temp_data.length - 1][1] >= 40">Température trop haute</b-alert>
+
+              <b-alert variant="danger" :show="humidity_data.length && humidity_data[humidity_data.length - 1][1] >= 80">Humidité trop haute</b-alert>
+
+              <b-alert variant="danger" :show="pressure_data.length && pressure_data[pressure_data.length - 1][1] <= 700">Pression trop basse</b-alert>
+              <b-alert variant="danger" :show="pressure_data.length && pressure_data[pressure_data.length - 1][1] >= 1100">Pression trop haute</b-alert>
+
+              <b-alert variant="danger" :show="luminosity_data.length && luminosity_data[luminosity_data.length - 1][1] <= 20">Luminosité trop basse</b-alert>
+              <b-alert variant="danger" :show="luminosity_data.length && luminosity_data[luminosity_data.length - 1][1] >= 25000">Luminosité trop haute</b-alert>
+
+              <b-alert variant="danger" :show="wind_data.length && wind_data[wind_data.length - 1][1] >= 35">Vent trop fort</b-alert>
+            </div>
           </div>
         </b-col>
         <b-col md="6">
